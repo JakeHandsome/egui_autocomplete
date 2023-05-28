@@ -16,6 +16,38 @@ impl AutoCompleteTextEditState {
    pub fn store(self, ctx: &Context, id: Id) {
       ctx.data_mut(|d| d.insert_persisted(id, self));
    }
+
+   fn update_index(
+      &mut self,
+      down_pressed: bool,
+      up_pressed: bool,
+      match_results_count: usize,
+      max_suggestions: usize,
+   ) {
+      self.selected_index = match self.selected_index {
+         // Increment selected index when down is pressed, limit it to the number of matches
+         Some(index) if down_pressed => {
+            if index + 1 < min(match_results_count, max_suggestions) {
+               Some(index + 1)
+            } else {
+               Some(index)
+            }
+         }
+         // Decrement selected index if up is pressed. Deselect if at first index
+         Some(index) if up_pressed => {
+            if index == 0 {
+               None
+            } else {
+               Some(index - 1)
+            }
+         }
+         // If nothing is selected and down is pressed, select first item
+         None if down_pressed => Some(0),
+         // Do nothing if no keys are pressed
+         Some(index) => Some(index),
+         None => None,
+      }
+   }
 }
 
 pub struct AutoCompleteTextEdit<'a> {
@@ -42,7 +74,6 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
          && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowDown));
       let id = ui.make_persistent_id(text_response.id);
       let mut state = AutoCompleteTextEditState::load(ui.ctx(), id).unwrap_or_default();
-      ui.label(format!("{id:?}"));
 
       let matcher = SkimMatcherV2::default().ignore_case();
 
@@ -50,49 +81,27 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
          .iter()
          .filter_map(|s| {
             let score = matcher.fuzzy_match(s, text_field);
-            if score.is_some() {
-               Some((s, score.unwrap()))
-            } else {
-               None
-            }
+            score.map(|x| (s, x))
          })
          .collect::<Vec<_>>();
       match_results.sort_by_key(|k| Reverse(k.1));
 
-      if text_response.changed() {
+      if text_response.changed()
+         || (state.selected_index.is_some() && state.selected_index.unwrap() >= match_results.len())
+      {
          state.selected_index = None;
       }
 
-      state.selected_index = match state.selected_index {
-         // Increment selected index when down is pressed, limit it to the number of matches
-         Some(index) if down_pressed => {
-            if index + 1 < min(match_results.len(), max_suggestions) {
-               Some(index + 1)
-            } else {
-               Some(index)
-            }
-         }
-         // Decrement selected index if up is pressed. Deselect if at first index
-         Some(index) if up_pressed => {
-            if index == 0 {
-               None
-            } else {
-               Some(index - 1)
-            }
-         }
-         // If nothing is selected and down is pressed, select first item
-         None if down_pressed => Some(0),
-         // Do nothing if no keys are pressed
-         Some(index) => Some(index),
-         None => None,
-      };
+      state.update_index(
+         down_pressed,
+         up_pressed,
+         match_results.len(),
+         max_suggestions,
+      );
 
       let enter_pressed = ui.input_mut(|input| input.key_pressed(Key::Enter));
-      match (state.selected_index, enter_pressed) {
-         (Some(index), true) => {
-            *text_field = match_results[index].0.clone();
-         }
-         _ => (),
+      if let (Some(index), true) = (state.selected_index, enter_pressed) {
+         *text_field = match_results[index].0.clone();
       }
       egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
          ui.set_min_width(200.0); // if you want to control the size

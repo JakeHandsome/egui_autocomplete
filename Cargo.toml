@@ -6,10 +6,31 @@ edition = "2021"
 
 [dependencies]
 fuzzy-matcher = "*"
-egui = { version = "0.22", default-features = false }
+egui = { version = "0.21", default-features = false }
 
 [dev-dependencies]
-eframe = { version = "0.22", default-features = false, features = [
+eframe = { version = "0.21", default-features = false, features = [
    "default_fonts",
    "glow",
 ] }
+
+[workspace]
+members = ["demo"]
+
+[profile.release]
+opt-level = 2 # fast and small wasm
+
+# Optimize all dependencies even in debug builds:
+[profile.dev.package."*"]
+opt-level = 2
+
+
+[patch.crates-io]
+
+# If you want to use the bleeding edge version of egui and eframe:
+# egui = { git = "https://github.com/emilk/egui", branch = "master" }
+# eframe = { git = "https://github.com/emilk/egui", branch = "master" }
+
+# If you fork https://github.com/emilk/egui you can test with:
+# egui = { path = "../egui/crates/egui" }
+# eframe = { path = "../egui/crates/eframe" }
