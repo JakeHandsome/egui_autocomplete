@@ -6,6 +6,7 @@ use std::cmp::{min, Reverse};
 #[derive(Clone, Default)]
 pub struct AutoCompleteTextEditState {
    selected_index: Option<usize>,
+   focused: bool,
 }
 
 impl AutoCompleteTextEditState {
@@ -67,13 +68,16 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
          search,
          max_suggestions,
       } = self;
-      let text_response = ui.text_edit_singleline(text_field);
-      let up_pressed = text_response.has_focus()
-         && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowUp));
-      let down_pressed = text_response.has_focus()
-         && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowDown));
-      let id = ui.make_persistent_id(text_response.id);
+      let id = ui.next_auto_id();
+      ui.skip_ahead_auto_ids(1);
       let mut state = AutoCompleteTextEditState::load(ui.ctx(), id).unwrap_or_default();
+
+      let up_pressed = state.focused
+         && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowUp));
+      let down_pressed = state.focused
+         && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowDown));
+      let text_response = ui.text_edit_singleline(text_field);
+      state.focused = text_response.has_focus();
 
       let matcher = SkimMatcherV2::default().ignore_case();
 
@@ -100,7 +104,10 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
       );
 
       let enter_pressed = ui.input_mut(|input| input.key_pressed(Key::Enter));
-      if let (Some(index), true) = (state.selected_index, enter_pressed) {
+      if let (Some(index), true) = (
+         state.selected_index,
+         enter_pressed && ui.memory(|mem| mem.is_popup_open(id)),
+      ) {
          *text_field = match_results[index].0.clone();
       }
       egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
