@@ -1,3 +1,4 @@
 [build]
 filehash = false
 dist = "../docs"
+public_url = "/egui_autocomplete/"

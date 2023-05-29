@@ -8,11 +8,11 @@
     <title>egui autocomplete demo</title>
 
     <!-- config for our rust wasm binary. go to https://trunkrs.dev/assets/#rust for more customization -->
-    <script type="module">import init from '/demo.js';init('/demo_bg.wasm');</script>
+    <script type="module">import init from '/egui_autocomplete/demo.js';init('/egui_autocomplete/demo_bg.wasm');</script>
     <!-- this is the base url relative to which other urls will be constructed. trunk will insert this from the public-url option -->
-    <base href="/">
+    <base href="/egui_autocomplete/">
 
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/egui_autocomplete/favicon.ico">
 
 
     
@@ -115,8 +115,8 @@
 
     </style>
 
-<link rel="preload" href="/demo_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/demo.js"></head>
+<link rel="preload" href="/egui_autocomplete/demo_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/egui_autocomplete/demo.js"></head>
 
 <body>
     <!-- The WASM code will resize the canvas dynamically -->
