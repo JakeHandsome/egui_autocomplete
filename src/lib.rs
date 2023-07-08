@@ -1,82 +1,59 @@
-use egui::{Context, Id, Key, Modifiers, Widget, WidgetWithState};
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+#![doc=include_str!("../README.md")]
+//! # Example
+//! ```rust
+//! use egui_autocomplete::AutoCompleteTextEdit;
+//! struct AutoCompleteExample {
+//!   // User entered text
+//!   text: String,
+//!   // A list of strings to search for completions
+//!   inputs: Vec<String>,
+//! }
+//!
+//! impl AutoCompleteExample {
+//!   fn update(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+//!     ui.add(AutoCompleteTextEdit::new(
+//!        &mut self.text,
+//!        &self.inputs,
+//!        10,
+//!     ));
+//!   }
+//! }
+//! ````
+use egui::{Context, Id, Key, Modifiers, TextBuffer, TextEdit, Widget};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::cmp::{min, Reverse};
 
-#[derive(Clone, Default)]
-pub struct AutoCompleteTextEditState {
-   selected_index: Option<usize>,
-   focused: bool,
-}
-
-impl AutoCompleteTextEditState {
-   pub fn load(ctx: &Context, id: Id) -> Option<Self> {
-      ctx.data_mut(|d| d.get_persisted(id))
-   }
-
-   pub fn store(self, ctx: &Context, id: Id) {
-      ctx.data_mut(|d| d.insert_persisted(id, self));
-   }
-
-   fn update_index(
-      &mut self,
-      down_pressed: bool,
-      up_pressed: bool,
-      match_results_count: usize,
-      max_suggestions: usize,
-   ) {
-      self.selected_index = match self.selected_index {
-         // Increment selected index when down is pressed, limit it to the number of matches
-         Some(index) if down_pressed => {
-            if index + 1 < min(match_results_count, max_suggestions) {
-               Some(index + 1)
-            } else {
-               Some(index)
-            }
-         }
-         // Decrement selected index if up is pressed. Deselect if at first index
-         Some(index) if up_pressed => {
-            if index == 0 {
-               None
-            } else {
-               Some(index - 1)
-            }
-         }
-         // If nothing is selected and down is pressed, select first item
-         None if down_pressed => Some(0),
-         // Do nothing if no keys are pressed
-         Some(index) => Some(index),
-         None => None,
-      }
-   }
-}
-
+/// An extension to the [`egui::TextEdit`] that allows for a dropdown box with autocomplete to popup while typing.  
 pub struct AutoCompleteTextEdit<'a> {
-   text_field: &'a mut String,
+   text_field: &'a mut dyn TextBuffer,
+   /// Slice of strings to use as the search term
    search: &'a [String],
    max_suggestions: usize,
 }
 
-impl<'a> WidgetWithState for AutoCompleteTextEdit<'a> {
-   type State = AutoCompleteTextEditState;
-}
-
 impl<'a> Widget for AutoCompleteTextEdit<'a> {
+   //! The response returned is the response from the internal text_edit
    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
       let Self {
          text_field,
          search,
          max_suggestions,
       } = self;
+
       let id = ui.next_auto_id();
       ui.skip_ahead_auto_ids(1);
       let mut state = AutoCompleteTextEditState::load(ui.ctx(), id).unwrap_or_default();
 
+      // only consume up/down presses if the text box is focused. This overwrites default behavior
+      // to move to start/end of the string
       let up_pressed = state.focused
          && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowUp));
       let down_pressed = state.focused
          && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowDown));
-      let text_response = ui.text_edit_singleline(text_field);
+      let text_response = TextEdit::singleline(text_field).ui(ui);
       state.focused = text_response.has_focus();
 
       let matcher = SkimMatcherV2::default().ignore_case();
@@ -84,7 +61,7 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
       let mut match_results = search
          .iter()
          .filter_map(|s| {
-            let score = matcher.fuzzy_match(s, text_field);
+            let score = matcher.fuzzy_match(s, text_field.as_str());
             score.map(|x| (s, x))
          })
          .collect::<Vec<_>>();
@@ -108,10 +85,9 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
          state.selected_index,
          enter_pressed && ui.memory(|mem| mem.is_popup_open(id)),
       ) {
-         *text_field = match_results[index].0.clone();
+         text_field.replace(match_results[index].0)
       }
       egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
-         ui.set_min_width(200.0); // if you want to control the size
          for (i, (output, _)) in match_results.iter().take(max_suggestions).enumerate() {
             let mut highlighed = if let Some(x) = state.selected_index {
                x == i
@@ -119,11 +95,11 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
                false
             };
             if ui.toggle_value(&mut highlighed, *output).clicked() {
-               *text_field = (*output).clone();
+               text_field.replace(output);
             }
          }
       });
-      if !text_field.is_empty() && text_response.has_focus() && !match_results.is_empty() {
+      if !text_field.as_str().is_empty() && text_response.has_focus() && !match_results.is_empty() {
          ui.memory_mut(|mem| mem.open_popup(id));
       } else {
          ui.memory_mut(|mem| {
@@ -140,11 +116,62 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
 }
 
 impl<'a> AutoCompleteTextEdit<'a> {
+   /// Creates a new [`AutoCompleteTextEdit`].
    pub fn new(text_field: &'a mut String, search: &'a [String], max_suggestions: usize) -> Self {
       Self {
          text_field,
          search,
          max_suggestions,
+      }
+   }
+}
+
+/// Stores the currently selected index in egui state
+#[derive(Clone, Default)]
+struct AutoCompleteTextEditState {
+   selected_index: Option<usize>,
+   focused: bool,
+}
+
+impl AutoCompleteTextEditState {
+   fn store(self, ctx: &Context, id: Id) {
+      ctx.data_mut(|d| d.insert_persisted(id, self));
+   }
+
+   fn load(ctx: &Context, id: Id) -> Option<Self> {
+      ctx.data_mut(|d| d.get_persisted(id))
+   }
+
+   /// Updates in selected index, checks to make sure nothing goes out of bounds
+   fn update_index(
+      &mut self,
+      down_pressed: bool,
+      up_pressed: bool,
+      match_results_count: usize,
+      max_suggestions: usize,
+   ) {
+      self.selected_index = match self.selected_index {
+         // Increment selected index when down is pressed, limit it to the number of matches and max_suggestions
+         Some(index) if down_pressed => {
+            if index + 1 < min(match_results_count, max_suggestions) {
+               Some(index + 1)
+            } else {
+               Some(index)
+            }
+         }
+         // Decrement selected index if up is pressed. Deselect if at first index
+         Some(index) if up_pressed => {
+            if index == 0 {
+               None
+            } else {
+               Some(index - 1)
+            }
+         }
+         // If nothing is selected and down is pressed, select first item
+         None if down_pressed => Some(0),
+         // Do nothing if no keys are pressed
+         Some(index) => Some(index),
+         None => None,
       }
    }
 }
