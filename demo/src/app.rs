@@ -97,6 +97,12 @@ impl eframe::App for TemplateApp {
    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
       egui::CentralPanel::default().show(ctx, |ui| {
          ui.heading("egui_autocomplete demo");
+         ui.label(
+            r#"Enter text in the single line entry for auto_complete.
+Add new lines in the multiline textbox to add to the autocomplete menu.
+Use arrow keys to select completion.
+Use enter or mouseclick to apply completion."#,
+         );
          ui.separator();
          ui.horizontal(|ui| {
             self.auto_complete1.update(ctx, ui);
