@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet};
+use std::collections::BTreeSet;
 
 use eframe::egui;
 use egui::{TextEdit, Ui};
@@ -96,7 +96,7 @@ impl Default for TemplateApp {
 impl eframe::App for TemplateApp {
    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
       egui::CentralPanel::default().show(ctx, |ui| {
-         ui.heading("My egui Application");
+         ui.heading("egui_autocomplete demo");
          ui.separator();
          ui.horizontal(|ui| {
             self.auto_complete1.update(ctx, ui);
