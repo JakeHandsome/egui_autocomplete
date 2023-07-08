@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use eframe::egui;
-use egui::{TextEdit, Ui};
+use egui::{TextEdit, Ui, Vec2};
 use egui_autocomplete::AutoCompleteTextEdit;
 
 const STARTER_LIST: &str = r#"writer
@@ -60,21 +60,19 @@ struct AutoCompleteExample {
 
 impl AutoCompleteExample {
    fn update(&mut self, _ctx: &egui::Context, ui: &mut Ui) {
-      ui.vertical(|ui| {
-         let inputs: Vec<String> = self
-            .multi_input
-            .lines()
-            .map(|x| x.to_string())
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .collect();
-         ui.add(AutoCompleteTextEdit::new(
-            &mut self.search_field,
-            &inputs,
-            10,
-         ));
-         ui.add(TextEdit::multiline(&mut self.multi_input));
-      });
+      let inputs: Vec<String> = self
+         .multi_input
+         .lines()
+         .map(|x| x.to_string())
+         .collect::<BTreeSet<_>>()
+         .into_iter()
+         .collect();
+      ui.add(AutoCompleteTextEdit::new(
+         &mut self.search_field,
+         &inputs,
+         10,
+      ));
+      ui.add(TextEdit::multiline(&mut self.multi_input));
    }
 }
 
@@ -96,18 +94,32 @@ impl Default for TemplateApp {
 impl eframe::App for TemplateApp {
    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
       egui::CentralPanel::default().show(ctx, |ui| {
-         ui.heading("egui_autocomplete demo");
-         ui.label(
-            r#"Enter text in the single line entry for auto_complete.
+         ui.vertical_centered_justified(|ui| {
+            ui.heading("egui_autocomplete demo");
+            ui.label(
+               r#"Enter text in the single line entry for auto_complete.
 Add new lines in the multiline textbox to add to the autocomplete menu.
 Use arrow keys to select completion.
 Use enter or mouseclick to apply completion."#,
-         );
+            );
+         });
          ui.separator();
          ui.horizontal(|ui| {
-            self.auto_complete1.update(ctx, ui);
+            ui.allocate_ui_with_layout(
+               ui.available_size() / Vec2::new(2., 1.),
+               egui::Layout::top_down(egui::Align::Max),
+               |ui| {
+                  self.auto_complete1.update(ctx, ui);
+               },
+            );
             ui.separator();
-            self.auto_complete2.update(ctx, ui);
+            ui.allocate_ui_with_layout(
+               ui.available_size(),
+               egui::Layout::top_down(egui::Align::Min),
+               |ui| {
+                  self.auto_complete2.update(ctx, ui);
+               },
+            );
          });
       });
    }
