@@ -41,7 +41,7 @@ jobs:
         run: ./trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
       - name: Deploy
         # Only deply on master builds
-        if: github.ref == 'ref/heads/master'
+        if: github.ref_name == 'master'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
