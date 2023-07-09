@@ -2,7 +2,11 @@
 name = "egui_autocomplete"
 version = "0.1.0"
 edition = "2021"
-
+license = "MIT"
+description = "auto complete text box for egui"
+readme = "README.md"
+repository = "https://github.com/JakeHandsome/egui_autocomplete"
+authors = ["Jake Hansen"]
 
 [dependencies]
 fuzzy-matcher = "*"
