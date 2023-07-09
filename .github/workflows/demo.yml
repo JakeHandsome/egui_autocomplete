@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - master
+  pull_request:
+
+# Spend CI time only on latest ref: https://github.com/jonhoo/rust-ci-conf/pull/5
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 permissions:
   contents: write # for committing to gh-pages branch.
@@ -34,6 +40,8 @@ jobs:
         working-directory: demo
         run: ./trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
       - name: Deploy
+        # Only deply on master builds
+        if: github.ref == 'ref/heads/master'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
