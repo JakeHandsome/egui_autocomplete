@@ -28,14 +28,16 @@ use std::cmp::{min, Reverse};
 
 /// An extension to the [`egui::TextEdit`] that allows for a dropdown box with autocomplete to popup while typing.  
 pub struct AutoCompleteTextEdit<'a> {
+    /// Contents of text edit passed into [`egui::TextEdit`]
     text_field: &'a mut dyn TextBuffer,
     /// Slice of strings to use as the search term
     search: &'a [String],
+    /// A limit that can be placed on the maximum number of autocomplete suggestions shown
     max_suggestions: usize,
 }
 
 impl<'a> Widget for AutoCompleteTextEdit<'a> {
-    //! The response returned is the response from the internal text_edit
+    /// The response returned is the response from the internal text_edit
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let Self {
             text_field,
@@ -131,15 +133,19 @@ impl<'a> AutoCompleteTextEdit<'a> {
 /// Stores the currently selected index in egui state
 #[derive(Clone, Default)]
 struct AutoCompleteTextEditState {
+    /// Currently selected index, is `None` if nothing is selected
     selected_index: Option<usize>,
+    /// Whether or not the text edit was focused last frame
     focused: bool,
 }
 
 impl AutoCompleteTextEditState {
+    /// Store the state with egui
     fn store(self, ctx: &Context, id: Id) {
         ctx.data_mut(|d| d.insert_persisted(id, self));
     }
 
+    /// Get the state from egui if it exists
     fn load(ctx: &Context, id: Id) -> Option<Self> {
         ctx.data_mut(|d| d.get_persisted(id))
     }
