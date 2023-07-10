@@ -1,6 +1,6 @@
 [![Crates.io](https://img.shields.io/crates/v/egui_autocomplete.svg)](https://crates.io/crates/egui_autocomplete)
 [![Documentation](https://docs.rs/egui_autocomplete/badge.svg)](https://docs.rs/egui_autocomplete/)
-[![Codecov](https://codecov.io/github/jakehansome/egui_autocomplete/coverage.svg?branch=main)](https://codecov.io/gh/jakehansome/egui_autocomplete)
+[![codecov](https://codecov.io/gh/JakeHandsome/egui_autocomplete/branch/master/graph/badge.svg?token=BPC9OF9BUE)](https://codecov.io/gh/JakeHandsome/egui_autocomplete)
 [![Dependency status](https://deps.rs/repo/github/jakehansome/egui_autocomplete/status.svg)](https://deps.rs/repo/github/jakehansome/egui_autocomplete)
 
 # egui_autocomplete
