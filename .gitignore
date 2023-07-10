@@ -1,3 +1,4 @@
 /target
 /dist
 cobertura.xml
+tarpaulin-*

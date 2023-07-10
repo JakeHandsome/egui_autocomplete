@@ -26,16 +26,33 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::cmp::{min, Reverse};
 
+impl<'a> AutoCompleteTextEdit<'a> {
+    /// Creates a new [`AutoCompleteTextEdit`].
+    ///
+    /// `text_field` - Contents of the text edit passed into [`egui::TextEdit`]
+    /// `search` - Slice of strings to use as the search term
+    /// `max_suggestions` - Limit of max_suggestions to show in the drop down
+    pub fn new(text_field: &'a mut String, search: &'a [String], max_suggestions: usize) -> Self {
+        Self {
+            text_field,
+            search,
+            max_suggestions,
+        }
+    }
+}
+
 /// An extension to the [`egui::TextEdit`] that allows for a dropdown box with autocomplete to popup while typing.  
 pub struct AutoCompleteTextEdit<'a> {
+    /// Contents of text edit passed into [`egui::TextEdit`]
     text_field: &'a mut dyn TextBuffer,
     /// Slice of strings to use as the search term
     search: &'a [String],
+    /// A limit that can be placed on the maximum number of autocomplete suggestions shown
     max_suggestions: usize,
 }
 
 impl<'a> Widget for AutoCompleteTextEdit<'a> {
-    //! The response returned is the response from the internal text_edit
+    /// The response returned is the response from the internal text_edit
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let Self {
             text_field,
@@ -117,29 +134,22 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
     }
 }
 
-impl<'a> AutoCompleteTextEdit<'a> {
-    /// Creates a new [`AutoCompleteTextEdit`].
-    pub fn new(text_field: &'a mut String, search: &'a [String], max_suggestions: usize) -> Self {
-        Self {
-            text_field,
-            search,
-            max_suggestions,
-        }
-    }
-}
-
 /// Stores the currently selected index in egui state
 #[derive(Clone, Default)]
 struct AutoCompleteTextEditState {
+    /// Currently selected index, is `None` if nothing is selected
     selected_index: Option<usize>,
+    /// Whether or not the text edit was focused last frame
     focused: bool,
 }
 
 impl AutoCompleteTextEditState {
+    /// Store the state with egui
     fn store(self, ctx: &Context, id: Id) {
         ctx.data_mut(|d| d.insert_persisted(id, self));
     }
 
+    /// Get the state from egui if it exists
     fn load(ctx: &Context, id: Id) -> Option<Self> {
         ctx.data_mut(|d| d.get_persisted(id))
     }
@@ -175,5 +185,39 @@ impl AutoCompleteTextEditState {
             Some(index) => Some(index),
             None => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn increment_index() {
+        let mut state = AutoCompleteTextEditState::default();
+        assert_eq!(None, state.selected_index);
+        state.update_index(false, false, 10, 10);
+        assert_eq!(None, state.selected_index);
+        state.update_index(true, false, 10, 10);
+        assert_eq!(Some(0), state.selected_index);
+        state.update_index(true, false, 2, 3);
+        assert_eq!(Some(1), state.selected_index);
+        state.update_index(true, false, 2, 3);
+        assert_eq!(Some(1), state.selected_index);
+        state.update_index(true, false, 10, 3);
+        assert_eq!(Some(2), state.selected_index);
+        state.update_index(true, false, 10, 3);
+        assert_eq!(Some(2), state.selected_index);
+    }
+    #[test]
+    fn decrement_index() {
+        let mut state = AutoCompleteTextEditState::default();
+        state.selected_index = Some(1);
+        state.update_index(false, false, 10, 10);
+        assert_eq!(Some(1), state.selected_index);
+        state.update_index(false, true, 10, 10);
+        assert_eq!(Some(0), state.selected_index);
+        state.update_index(false, true, 10, 10);
+        assert_eq!(None, state.selected_index);
     }
 }
