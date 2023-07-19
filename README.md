@@ -9,3 +9,5 @@ An extension to the [`egui::TextEdit`] that allows for a dropdown box with autoc
 You can select the suggestions with arrows keys + enter or mouse clicks.
 
 View web example [here](https://jakehandsome.github.io/egui_autocomplete/)
+
+To enable egui persistence, enable the `serde` feature

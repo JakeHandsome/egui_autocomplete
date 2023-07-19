@@ -136,6 +136,8 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
 
 /// Stores the currently selected index in egui state
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(default))]
 struct AutoCompleteTextEditState {
     /// Currently selected index, is `None` if nothing is selected
     selected_index: Option<usize>,
