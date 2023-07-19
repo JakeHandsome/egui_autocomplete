@@ -67,11 +67,15 @@ impl AutoCompleteExample {
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect();
-        ui.add(AutoCompleteTextEdit::new(
-            &mut self.search_field,
-            &inputs,
-            10,
-        ));
+        ui.add(
+            AutoCompleteTextEdit::new(&mut self.search_field, &inputs)
+                .max_suggestions(15)
+                .set_text_edit_properties(|text_edit| {
+                    text_edit
+                        .hint_text("Hint Text")
+                        .text_color(egui::Color32::RED)
+                }),
+        );
         ui.add(TextEdit::multiline(&mut self.multi_input));
     }
 }
