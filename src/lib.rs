@@ -98,10 +98,11 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
             max_suggestions,
         );
 
-        let enter_pressed = ui.input_mut(|input| input.key_pressed(Key::Enter));
+        let accepted_by_keyboard = ui.input_mut(|input| input.key_pressed(Key::Enter))
+            || ui.input_mut(|input| input.key_pressed(Key::Tab));
         if let (Some(index), true) = (
             state.selected_index,
-            enter_pressed && ui.memory(|mem| mem.is_popup_open(id)),
+            ui.memory(|mem| mem.is_popup_open(id)) && accepted_by_keyboard,
         ) {
             text_field.replace(match_results[index].0)
         }
