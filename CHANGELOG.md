@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.2]
+## [0.1.2] - 2023-08-07
 
 ### Added
 - `Tab` can now be used to accept currently highlighted autocomplete 
@@ -20,6 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] 
 - Initial Release
 
-[0.1.2]: https://github.com/JakeHandsome/egui_autocomplate/compare/0.1.1...0.1.2
-[0.1.1]: https://github.com/JakeHandsome/egui_autocomplate/compare/0.1.0...0.1.1
+[0.1.2]: https://github.com/JakeHandsome/egui_autocomplete/compare/0.1.1...0.1.2
+[0.1.1]: https://github.com/JakeHandsome/egui_autocomplete/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/JakeHandsome/egui_autocomplete/releases/tag/0.1.0
