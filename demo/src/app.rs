@@ -100,7 +100,7 @@ impl eframe::App for TemplateApp {
                     r#"Enter text in the single line entry for auto_complete.
 Add new lines in the multiline textbox to add to the autocomplete menu.
 Use arrow keys to select completion.
-Use enter or mouseclick to apply completion."#,
+Use enter, tab or mouseclick to apply completion."#,
                 );
             });
             ui.separator();
