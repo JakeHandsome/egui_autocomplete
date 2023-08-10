@@ -21,7 +21,7 @@
 //!   }
 //! }
 //! ````
-use egui::{Context, Id, Key, Modifiers, TextBuffer, TextEdit, Widget};
+use egui::{Color32, Context, Id, Key, Modifiers, TextBuffer, TextEdit, Widget, WidgetText};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::cmp::{min, Reverse};
@@ -37,7 +37,22 @@ impl<'a> AutoCompleteTextEdit<'a> {
             text_field,
             search,
             max_suggestions,
+            hint_text: Default::default(),
+            interactive: true,
         }
+    }
+
+    /// Show a faint hint text when the text field is empty.
+    pub fn hint_text(mut self, hint_text: impl Into<WidgetText>) -> Self {
+        self.hint_text = hint_text.into();
+        self
+    }
+
+    /// Whether the text edit is interactive
+    /// Defaults to true
+    pub fn interactive(mut self, interactive: bool) -> Self {
+        self.interactive = interactive;
+        self
     }
 }
 
@@ -49,6 +64,10 @@ pub struct AutoCompleteTextEdit<'a> {
     search: &'a [String],
     /// A limit that can be placed on the maximum number of autocomplete suggestions shown
     max_suggestions: usize,
+    /// Hint to show when the text edit is empty
+    hint_text: WidgetText,
+    /// Whether the text edit is interactive
+    interactive: bool,
 }
 
 impl<'a> Widget for AutoCompleteTextEdit<'a> {
@@ -58,6 +77,8 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
             text_field,
             search,
             max_suggestions,
+            hint_text,
+            interactive,
         } = self;
 
         let id = ui.next_auto_id();
@@ -70,7 +91,10 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
             && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowUp));
         let down_pressed = state.focused
             && ui.input_mut(|input| input.consume_key(Modifiers::default(), Key::ArrowDown));
-        let text_response = TextEdit::singleline(text_field).ui(ui);
+        let text_response = TextEdit::singleline(text_field)
+            .hint_text(hint_text)
+            .interactive(interactive)
+            .ui(ui);
         state.focused = text_response.has_focus();
 
         let matcher = SkimMatcherV2::default().ignore_case();
