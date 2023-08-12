@@ -16,7 +16,6 @@
 //!     ui.add(AutoCompleteTextEdit::new(
 //!        &mut self.text,
 //!        &self.inputs,
-//!        10,
 //!     ));
 //!   }
 //! }
@@ -74,13 +73,14 @@ impl<'a> AutoCompleteTextEdit<'a> {
     /// Can be used to set the properties of the internal [`egui::TextEdit`]
     /// # Example
     /// ```rust
-    /// # fn make_text_edit(search_field:String, inputs: Vec<String>) {
+    /// # use egui_autocomplete::AutoCompleteTextEdit;
+    /// # fn make_text_edit(mut search_field: String, inputs: Vec<String>) {
     /// AutoCompleteTextEdit::new(&mut search_field, &inputs)
     ///     .set_text_edit_properties(|text_edit: egui::TextEdit<'_>| {
     ///         text_edit
     ///             .hint_text("Hint Text")
     ///             .text_color(egui::Color32::RED)
-    ///     })
+    ///     });
     /// # }
     /// ```
     pub fn set_text_edit_properties(
@@ -319,5 +319,27 @@ mod test {
         assert_eq!(Some(0), state.selected_index);
         state.update_index(false, true, 10, 10);
         assert_eq!(None, state.selected_index);
+    }
+    #[test]
+    fn highlight() {
+        let text = String::from("Test123");
+        let match_indices = vec![1, 5, 6];
+        let layout = highlight_matches(&&text, &match_indices, egui::Color32::RED);
+        assert_eq!(4, layout.sections.len());
+        let sec1 = layout.sections.get(0).unwrap();
+        assert_eq!(sec1.byte_range, 0..1);
+        assert_ne!(sec1.format.color, egui::Color32::RED);
+
+        let sec2 = layout.sections.get(1).unwrap();
+        assert_eq!(sec2.byte_range, 1..2);
+        assert_eq!(sec2.format.color, egui::Color32::RED);
+
+        let sec3 = layout.sections.get(2).unwrap();
+        assert_eq!(sec3.byte_range, 2..5);
+        assert_ne!(sec3.format.color, egui::Color32::RED);
+
+        let sec4 = layout.sections.get(3).unwrap();
+        assert_eq!(sec4.byte_range, 5..7);
+        assert_eq!(sec4.format.color, egui::Color32::RED);
     }
 }
