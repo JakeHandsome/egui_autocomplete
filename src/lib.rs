@@ -21,12 +21,13 @@
 //!   }
 //! }
 //! ````
-use egui::{
-    text::LayoutJob, Context, FontId, Id, Key, Layout, Modifiers, TextBuffer, TextEdit, Widget,
-};
+use egui::{text::LayoutJob, Context, FontId, Id, Key, Modifiers, TextBuffer, TextEdit, Widget};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::cmp::{min, Reverse};
+
+/// Trait that can be used to modify the TextEdit
+type SetTextEditProperties = dyn FnOnce(TextEdit) -> TextEdit;
 
 /// An extension to the [`egui::TextEdit`] that allows for a dropdown box with autocomplete to popup while typing.  
 pub struct AutoCompleteTextEdit<'a> {
@@ -38,7 +39,8 @@ pub struct AutoCompleteTextEdit<'a> {
     max_suggestions: usize,
     /// If true, highlights the macthing indices in the dropdown
     highlight: bool,
-    set_properties: Option<Box<dyn FnOnce(TextEdit) -> TextEdit>>,
+    /// Used to set properties on the internal TextEdit
+    set_properties: Option<Box<SetTextEditProperties>>,
 }
 
 impl<'a> AutoCompleteTextEdit<'a> {
@@ -196,22 +198,27 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
     }
 }
 
+/// Highlights all the match indices in the provided text
 fn highlight_matches(text: &&String, match_indices: &[usize], color: egui::Color32) -> LayoutJob {
     let mut formatted = LayoutJob::default();
     let mut it = (0..text.len()).peekable();
+    // Iterate through all indices in the string
     while let Some(j) = it.next() {
         let start = j;
         let mut end = j;
-        let start_match = match_indices.contains(&start);
+        let match_state = match_indices.contains(&start);
+        // Find all consecutive characters that have the same state
         while let Some(k) = it.peek() {
-            if start_match == match_indices.contains(k) {
+            if match_state == match_indices.contains(k) {
                 end += 1;
+                // Advance the iterator, we already peeked the value so it is fine to ignore
                 _ = it.next();
             } else {
                 break;
             }
         }
-        let format = if start_match {
+        // Format current slice based on the state
+        let format = if match_state {
             egui::TextFormat::simple(FontId::default(), color)
         } else {
             egui::TextFormat::default()
