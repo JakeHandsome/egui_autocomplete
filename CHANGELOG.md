@@ -12,14 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 - API has moved to a builder pattern, with only the required parameters in the `new` function
     - Max suggestions is no longer in the `new` function. To get the same behavior change usage as follows  
-    *Old*
-    ```rust
-    AutoCompleteTextEdit::new(&mut text, &inputs, max_suggestions);
-    ```
-    *New*
-    ```rust
-    AutoCompleteTextEdit::new(&mut text, &inputs).max_suggestions(max_suggestions);
-    ```
+        **Old**
+        ```rust
+        AutoCompleteTextEdit::new(&mut text, &inputs, max_suggestions);
+        ```
+        **New**
+        ```rust
+        AutoCompleteTextEdit::new(&mut text, &inputs).max_suggestions(max_suggestions);
+        ```
 
 ### Added
 - API to change max_suggestions `.max_suggestions(usize)`
