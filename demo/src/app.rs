@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use eframe::egui;
-use egui::{TextEdit, Ui, Vec2};
+use egui::{Label, TextEdit, Ui, Vec2};
 use egui_autocomplete::AutoCompleteTextEdit;
 
 const STARTER_LIST: &str = r#"writer
@@ -51,6 +51,8 @@ treated
 pub struct TemplateApp {
     auto_complete1: AutoCompleteExample,
     auto_complete2: AutoCompleteExample,
+    max_suggestions: usize,
+    highlight: bool,
 }
 
 struct AutoCompleteExample {
@@ -59,7 +61,13 @@ struct AutoCompleteExample {
 }
 
 impl AutoCompleteExample {
-    fn update(&mut self, _ctx: &egui::Context, ui: &mut Ui) {
+    fn update(
+        &mut self,
+        _ctx: &egui::Context,
+        ui: &mut Ui,
+        max_suggestions: usize,
+        highlight_matches: bool,
+    ) {
         let inputs: Vec<String> = self
             .multi_input
             .lines()
@@ -67,11 +75,11 @@ impl AutoCompleteExample {
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect();
-        ui.add(AutoCompleteTextEdit::new(
-            &mut self.search_field,
-            &inputs,
-            10,
-        ));
+        ui.add(
+            AutoCompleteTextEdit::new(&mut self.search_field, &inputs)
+                .max_suggestions(max_suggestions)
+                .highlight_matches(highlight_matches),
+        );
         ui.add(TextEdit::multiline(&mut self.multi_input));
     }
 }
@@ -87,6 +95,8 @@ impl Default for TemplateApp {
                 multi_input: Default::default(),
                 search_field: Default::default(),
             },
+            max_suggestions: 10,
+            highlight: false,
         }
     }
 }
@@ -104,12 +114,28 @@ Use enter, tab or mouseclick to apply completion."#,
                 );
             });
             ui.separator();
+            ui.vertical_centered_justified(|ui| ui.heading("Options"));
+            ui.vertical_centered_justified(|ui| {
+                ui.checkbox(&mut self.highlight, "Highlight matches")
+                    .on_hover_text(
+                    "If highlight is set, matching characters will be highlighted in the drop down",
+                );
+                ui.add(egui::DragValue::new(&mut self.max_suggestions).prefix("Max suggestions: "))
+                    .on_hover_text(
+                        "This determines the maximum number options to show in the drop down",
+                    );
+                if self.max_suggestions == 0 {
+                    ui.label("Setting that to 0 basically disables the autocomplete");
+                }
+            });
+            ui.separator();
             ui.horizontal(|ui| {
                 ui.allocate_ui_with_layout(
                     ui.available_size() / Vec2::new(2., 1.),
                     egui::Layout::top_down(egui::Align::Max),
                     |ui| {
-                        self.auto_complete1.update(ctx, ui);
+                        self.auto_complete1
+                            .update(ctx, ui, self.max_suggestions, self.highlight);
                     },
                 );
                 ui.separator();
@@ -117,7 +143,8 @@ Use enter, tab or mouseclick to apply completion."#,
                     ui.available_size(),
                     egui::Layout::top_down(egui::Align::Min),
                     |ui| {
-                        self.auto_complete2.update(ctx, ui);
+                        self.auto_complete2
+                            .update(ctx, ui, self.max_suggestions, self.highlight);
                     },
                 );
             });
