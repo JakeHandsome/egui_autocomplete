@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Generate code coverage
         run: |
-          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml --exclude-files demo/*
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml --exclude-files demo/*
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
