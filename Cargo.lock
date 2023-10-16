@@ -757,7 +757,7 @@ dependencies = [
 
 [[package]]
 name = "egui_autocomplete"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "eframe",
  "egui",

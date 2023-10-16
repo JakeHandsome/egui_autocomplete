@@ -32,7 +32,7 @@ type SetTextEditProperties = dyn FnOnce(TextEdit) -> TextEdit;
 pub struct AutoCompleteTextEdit<'a, T> {
     /// Contents of text edit passed into [`egui::TextEdit`]
     text_field: &'a mut String,
-    /// Slice of strings to use as the search term
+    /// Data to use as the search term
     search: T,
     /// A limit that can be placed on the maximum number of autocomplete suggestions shown
     max_suggestions: usize,
@@ -50,7 +50,7 @@ where
     /// Creates a new [`AutoCompleteTextEdit`].
     ///
     /// `text_field` - Contents of the text edit passed into [`egui::TextEdit`]
-    /// `search` - Slice of strings to use as the search term
+    /// `search` - Data use as the search term
     pub fn new(text_field: &'a mut String, search: T) -> Self {
         Self {
             text_field,
