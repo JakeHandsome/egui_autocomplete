@@ -42,9 +42,10 @@ pub struct AutoCompleteTextEdit<'a, T> {
     set_properties: Option<Box<SetTextEditProperties>>,
 }
 
-impl<'a, T> AutoCompleteTextEdit<'a, T>
+impl<'a, T, S> AutoCompleteTextEdit<'a, T>
 where
-    T: IntoIterator<Item = &'a str>,
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
 {
     /// Creates a new [`AutoCompleteTextEdit`].
     ///
@@ -61,9 +62,10 @@ where
     }
 }
 
-impl<'a, T> AutoCompleteTextEdit<'a, T>
+impl<'a, T, S> AutoCompleteTextEdit<'a, T>
 where
-    T: IntoIterator<Item = &'a str>,
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
 {
     /// This determines the number of options appear in the dropdown menu
     pub fn max_suggestions(mut self, max_suggestions: usize) -> Self {
@@ -98,9 +100,10 @@ where
     }
 }
 
-impl<'a, T> Widget for AutoCompleteTextEdit<'a, T>
+impl<'a, T, S> Widget for AutoCompleteTextEdit<'a, T>
 where
-    T: IntoIterator<Item = &'a str>,
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
 {
     /// The response returned is the response from the internal text_edit
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
@@ -136,7 +139,7 @@ where
         let mut match_results = search
             .into_iter()
             .filter_map(|s| {
-                let score = matcher.fuzzy_indices(s, text_field.as_str());
+                let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
                 score.map(|(score, indices)| (s, score, indices))
             })
             .collect::<Vec<_>>();
@@ -162,7 +165,7 @@ where
             state.selected_index,
             ui.memory(|mem| mem.is_popup_open(id)) && accepted_by_keyboard,
         ) {
-            text_field.replace(match_results[index].0)
+            text_field.replace(match_results[index].0.as_ref())
         }
         egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
             for (i, (output, _, match_indices)) in
@@ -176,17 +179,17 @@ where
 
                 let text = if highlight {
                     highlight_matches(
-                        output,
+                        output.as_ref(),
                         match_indices,
                         ui.style().visuals.widgets.active.text_color(),
                     )
                 } else {
                     let mut job = LayoutJob::default();
-                    job.append(output, 0.0, egui::TextFormat::default());
+                    job.append(output.as_ref(), 0.0, egui::TextFormat::default());
                     job
                 };
                 if ui.toggle_value(&mut selected, text).clicked() {
-                    text_field.replace(output);
+                    text_field.replace(output.as_ref());
                 }
             }
         });
