@@ -28,12 +28,12 @@ use std::cmp::{min, Reverse};
 /// Trait that can be used to modify the TextEdit
 type SetTextEditProperties = dyn FnOnce(TextEdit) -> TextEdit;
 
-/// An extension to the [`egui::TextEdit`] that allows for a dropdown box with autocomplete to popup while typing.  
-pub struct AutoCompleteTextEdit<'a> {
+/// An extension to the [`egui::TextEdit`] that allows for a dropdown box with autocomplete to popup while typing.
+pub struct AutoCompleteTextEdit<'a, T> {
     /// Contents of text edit passed into [`egui::TextEdit`]
     text_field: &'a mut String,
     /// Slice of strings to use as the search term
-    search: &'a [String],
+    search: T,
     /// A limit that can be placed on the maximum number of autocomplete suggestions shown
     max_suggestions: usize,
     /// If true, highlights the macthing indices in the dropdown
@@ -42,12 +42,16 @@ pub struct AutoCompleteTextEdit<'a> {
     set_properties: Option<Box<SetTextEditProperties>>,
 }
 
-impl<'a> AutoCompleteTextEdit<'a> {
+impl<'a, T, S> AutoCompleteTextEdit<'a, T>
+where
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     /// Creates a new [`AutoCompleteTextEdit`].
     ///
     /// `text_field` - Contents of the text edit passed into [`egui::TextEdit`]
     /// `search` - Slice of strings to use as the search term
-    pub fn new(text_field: &'a mut String, search: &'a [String]) -> Self {
+    pub fn new(text_field: &'a mut String, search: T) -> Self {
         Self {
             text_field,
             search,
@@ -58,7 +62,11 @@ impl<'a> AutoCompleteTextEdit<'a> {
     }
 }
 
-impl<'a> AutoCompleteTextEdit<'a> {
+impl<'a, T, S> AutoCompleteTextEdit<'a, T>
+where
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     /// This determines the number of options appear in the dropdown menu
     pub fn max_suggestions(mut self, max_suggestions: usize) -> Self {
         self.max_suggestions = max_suggestions;
@@ -92,7 +100,11 @@ impl<'a> AutoCompleteTextEdit<'a> {
     }
 }
 
-impl<'a> Widget for AutoCompleteTextEdit<'a> {
+impl<'a, T, S> Widget for AutoCompleteTextEdit<'a, T>
+where
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     /// The response returned is the response from the internal text_edit
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let Self {
@@ -125,9 +137,9 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
         let matcher = SkimMatcherV2::default().ignore_case();
 
         let mut match_results = search
-            .iter()
+            .into_iter()
             .filter_map(|s| {
-                let score = matcher.fuzzy_indices(s, text_field.as_str());
+                let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
                 score.map(|(score, indices)| (s, score, indices))
             })
             .collect::<Vec<_>>();
@@ -153,7 +165,7 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
             state.selected_index,
             ui.memory(|mem| mem.is_popup_open(id)) && accepted_by_keyboard,
         ) {
-            text_field.replace(match_results[index].0)
+            text_field.replace(match_results[index].0.as_ref())
         }
         egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
             for (i, (output, _, match_indices)) in
@@ -167,17 +179,17 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
 
                 let text = if highlight {
                     highlight_matches(
-                        output,
+                        output.as_ref(),
                         match_indices,
                         ui.style().visuals.widgets.active.text_color(),
                     )
                 } else {
                     let mut job = LayoutJob::default();
-                    job.append(output, 0.0, egui::TextFormat::default());
+                    job.append(output.as_ref(), 0.0, egui::TextFormat::default());
                     job
                 };
                 if ui.toggle_value(&mut selected, text).clicked() {
-                    text_field.replace(output);
+                    text_field.replace(output.as_ref());
                 }
             }
         });
@@ -199,7 +211,7 @@ impl<'a> Widget for AutoCompleteTextEdit<'a> {
 }
 
 /// Highlights all the match indices in the provided text
-fn highlight_matches(text: &&String, match_indices: &[usize], color: egui::Color32) -> LayoutJob {
+fn highlight_matches(text: &str, match_indices: &[usize], color: egui::Color32) -> LayoutJob {
     let mut formatted = LayoutJob::default();
     let mut it = (0..text.len()).peekable();
     // Iterate through all indices in the string
@@ -324,7 +336,7 @@ mod test {
     fn highlight() {
         let text = String::from("Test123");
         let match_indices = vec![1, 5, 6];
-        let layout = highlight_matches(&&text, &match_indices, egui::Color32::RED);
+        let layout = highlight_matches(&text, &match_indices, egui::Color32::RED);
         assert_eq!(4, layout.sections.len());
         let sec1 = layout.sections.get(0).unwrap();
         assert_eq!(sec1.byte_range, 0..1);
