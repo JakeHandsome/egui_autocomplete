@@ -68,15 +68,14 @@ impl AutoCompleteExample {
         max_suggestions: usize,
         highlight_matches: bool,
     ) {
-        let inputs: Vec<String> = self
+        let inputs: Vec<&str> = self
             .multi_input
             .lines()
-            .map(|x| x.to_string())
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect();
         ui.add(
-            AutoCompleteTextEdit::new(&mut self.search_field, &inputs)
+            AutoCompleteTextEdit::new(&mut self.search_field, inputs)
                 .max_suggestions(max_suggestions)
                 .highlight_matches(highlight_matches),
         );
