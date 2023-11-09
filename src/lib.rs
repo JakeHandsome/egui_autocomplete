@@ -23,6 +23,7 @@
 use egui::{text::LayoutJob, Context, FontId, Id, Key, Modifiers, TextBuffer, TextEdit, Widget};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
+use rayon::prelude::*;
 use std::cmp::{min, Reverse};
 
 /// Trait that can be used to modify the TextEdit
@@ -40,11 +41,13 @@ pub struct AutoCompleteTextEdit<'a, T> {
     highlight: bool,
     /// Used to set properties on the internal TextEdit
     set_properties: Option<Box<SetTextEditProperties>>,
+
+    use_parallel_filter: bool,
 }
 
 impl<'a, T, S> AutoCompleteTextEdit<'a, T>
 where
-    T: IntoIterator<Item = S>,
+    T: IntoIterator<Item = S> + IntoParallelIterator<Item = S>,
     S: AsRef<str>,
 {
     /// Creates a new [`AutoCompleteTextEdit`].
@@ -58,14 +61,15 @@ where
             max_suggestions: 10,
             highlight: false,
             set_properties: None,
+            use_parallel_filter: false,
         }
     }
 }
 
 impl<'a, T, S> AutoCompleteTextEdit<'a, T>
 where
-    T: IntoIterator<Item = S>,
-    S: AsRef<str>,
+    T: IntoIterator<Item = S> + IntoParallelIterator<Item = S>,
+    S: AsRef<str> + std::marker::Send,
 {
     /// This determines the number of options appear in the dropdown menu
     pub fn max_suggestions(mut self, max_suggestions: usize) -> Self {
@@ -75,6 +79,26 @@ where
     /// If set to true, characters will be highlighted in the dropdown to show the match
     pub fn highlight_matches(mut self, highlight: bool) -> Self {
         self.highlight = highlight;
+        self
+    }
+    /// Set whether to use parallel filtering for autocomplete suggestions.
+    ///
+    /// If `use_parallel` is set to `true`, autocomplete suggestions will be filtered in parallel.
+    /// This can improve performance for large datasets.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use egui_autocomplete::AutoCompleteTextEdit;
+    ///
+    /// let mut text = String::new();
+    /// let suggestions = vec!["apple", "banana", "cherry"];
+    ///
+    /// let autocomplete = AutoCompleteTextEdit::new(&mut text, &suggestions)
+    ///     .use_parallel_filter(true);
+    /// ```
+    pub fn use_parallel_filter(mut self, use_parallel: bool) -> Self {
+        self.use_parallel_filter = use_parallel;
         self
     }
 
@@ -102,8 +126,8 @@ where
 
 impl<'a, T, S> Widget for AutoCompleteTextEdit<'a, T>
 where
-    T: IntoIterator<Item = S>,
-    S: AsRef<str>,
+    T: IntoIterator<Item = S> + IntoParallelIterator<Item = S>,
+    S: AsRef<str> + std::marker::Send,
 {
     /// The response returned is the response from the internal text_edit
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
@@ -113,6 +137,7 @@ where
             max_suggestions,
             highlight,
             set_properties,
+            use_parallel_filter,
         } = self;
 
         let id = ui.next_auto_id();
@@ -136,15 +161,24 @@ where
 
         let matcher = SkimMatcherV2::default().ignore_case();
 
-        let mut match_results = search
-            .into_iter()
-            .filter_map(|s| {
-                let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
-                score.map(|(score, indices)| (s, score, indices))
-            })
-            .collect::<Vec<_>>();
+        let mut match_results = if self.use_parallel_filter == true {
+            search
+                .into_par_iter()
+                .filter_map(|s| {
+                    let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
+                    score.map(|(score, indices)| (s, score, indices))
+                })
+                .collect::<Vec<_>>()
+        } else {
+            search
+                .into_iter()
+                .filter_map(|s| {
+                    let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
+                    score.map(|(score, indices)| (s, score, indices))
+                })
+                .collect::<Vec<_>>()
+        };
         match_results.sort_by_key(|k| Reverse(k.1));
-
         if text_response.changed()
             || (state.selected_index.is_some()
                 && state.selected_index.unwrap() >= match_results.len())

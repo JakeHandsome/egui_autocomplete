@@ -1,8 +1,7 @@
-use std::collections::BTreeSet;
-
 use eframe::egui;
 use egui::{Label, TextEdit, Ui, Vec2};
 use egui_autocomplete::AutoCompleteTextEdit;
+use std::collections::BTreeSet;
 
 const STARTER_LIST: &str = r#"writer
 seat
