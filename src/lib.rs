@@ -165,7 +165,7 @@ where
             state.selected_index,
             ui.memory(|mem| mem.is_popup_open(id)) && accepted_by_keyboard,
         ) {
-            text_field.replace(match_results[index].0.as_ref())
+            text_field.replace_with(match_results[index].0.as_ref())
         }
         egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
             for (i, (output, _, match_indices)) in
@@ -189,7 +189,7 @@ where
                     job
                 };
                 if ui.toggle_value(&mut selected, text).clicked() {
-                    text_field.replace(output.as_ref());
+                    text_field.replace_with(output.as_ref());
                 }
             }
         });
