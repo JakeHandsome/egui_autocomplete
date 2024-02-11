@@ -1,6 +1,6 @@
 [package]
 name = "egui_autocomplete"
-version = "4.0.0"
+version = "5.0.0"
 edition = "2021"
 license = "MIT"
 description = "Auto complete text box for egui"
@@ -12,17 +12,19 @@ rust-version = "1.72"
 
 [dependencies]
 fuzzy-matcher = "0.3.7"
-egui = { version = "0.25", default-features = false }
 serde = { version = "1", features = ["derive"], optional = true }
-
-[dev-dependencies]
-eframe = { version = "0.25", default-features = false, features = [
-    "default_fonts",
-    "glow",
-] }
+egui.workspace = true
+eframe.workspace = true
 
 [workspace]
 members = ["demo"]
+
+[workspace.dependencies]
+egui = { version = "0.26", default-features = false }
+eframe = { version = "0.26", default-features = false, features = [
+    "default_fonts",
+    "glow",
+] }
 
 [features]
 serde = ["dep:serde", "egui/persistence"]
