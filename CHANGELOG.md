@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [5.0.0] - 2024-02-11
 
 ### Breaking
-- Update to egui 0.25
+- Update to egui 0.26
 
 [5.0.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/4.0.0...5.0.0
 
