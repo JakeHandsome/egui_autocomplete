@@ -213,16 +213,17 @@ where
 /// Highlights all the match indices in the provided text
 fn highlight_matches(text: &str, match_indices: &[usize], color: egui::Color32) -> LayoutJob {
     let mut formatted = LayoutJob::default();
-    let mut it = (0..text.len()).peekable();
+    let mut it = text.char_indices().peekable();
+    let mut char_idx = 0; // Track char index
     // Iterate through all indices in the string
-    while let Some(j) = it.next() {
+    while let Some((j, _)) = it.next() {
         let start = j;
         let mut end = j;
-        let match_state = match_indices.contains(&start);
+        let match_state = match_indices.contains(&char_idx);
         // Find all consecutive characters that have the same state
-        while let Some(k) = it.peek() {
-            if match_state == match_indices.contains(k) {
-                end += 1;
+        while let Some((_, c)) = it.peek() {
+            if match_state == match_indices.contains(&(char_idx + 1)) {
+                end += c.len_utf8();
                 // Advance the iterator, we already peeked the value so it is fine to ignore
                 _ = it.next();
             } else {
@@ -237,6 +238,7 @@ fn highlight_matches(text: &str, match_indices: &[usize], color: egui::Color32) 
         };
         let slice = &text[start..=end];
         formatted.append(slice, 0.0, format);
+        char_idx += 1;
     }
     formatted
 }
