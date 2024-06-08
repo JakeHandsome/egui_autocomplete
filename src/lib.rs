@@ -220,7 +220,7 @@ fn highlight_matches(text: &str, match_indices: &[usize], color: egui::Color32) 
         let mut end = byte_idx + (c.len_utf8() - 1);
         let match_state = match_indices.contains(&char_idx);
         // Find all consecutive characters that have the same state
-        while let Some((peek_char_idx, (peek_byte_idx, k))) = it.peek() {
+        while let Some((peek_char_idx, (_, k))) = it.peek() {
             if match_state == match_indices.contains(peek_char_idx) {
                 end += k.len_utf8();
                 // Advance the iterator, we already peeked the value so it is fine to ignore
@@ -334,24 +334,32 @@ mod test {
     }
     #[test]
     fn highlight() {
-        let text = String::from("Test123");
-        let match_indices = vec![1, 5, 6];
+        let text = String::from("Test123áéíó");
+        let match_indices = vec![1, 5, 6, 8, 9, 10];
         let layout = highlight_matches(&text, &match_indices, egui::Color32::RED);
-        assert_eq!(4, layout.sections.len());
-        let sec1 = layout.sections.get(0).unwrap();
-        assert_eq!(sec1.byte_range, 0..1);
+        assert_eq!(6, layout.sections.len());
+        let sec1 = layout.sections.first().unwrap();
+        assert_eq!(&text[sec1.byte_range.start..sec1.byte_range.end], "T");
         assert_ne!(sec1.format.color, egui::Color32::RED);
 
         let sec2 = layout.sections.get(1).unwrap();
-        assert_eq!(sec2.byte_range, 1..2);
+        assert_eq!(&text[sec2.byte_range.start..sec2.byte_range.end], "e");
         assert_eq!(sec2.format.color, egui::Color32::RED);
 
         let sec3 = layout.sections.get(2).unwrap();
-        assert_eq!(sec3.byte_range, 2..5);
+        assert_eq!(&text[sec3.byte_range.start..sec3.byte_range.end], "st1");
         assert_ne!(sec3.format.color, egui::Color32::RED);
 
         let sec4 = layout.sections.get(3).unwrap();
-        assert_eq!(sec4.byte_range, 5..7);
+        assert_eq!(&text[sec4.byte_range.start..sec4.byte_range.end], "23");
         assert_eq!(sec4.format.color, egui::Color32::RED);
+
+        let sec5 = layout.sections.get(4).unwrap();
+        assert_eq!(&text[sec5.byte_range.start..sec5.byte_range.end], "á");
+        assert_ne!(sec5.format.color, egui::Color32::RED);
+
+        let sec6 = layout.sections.get(5).unwrap();
+        assert_eq!(&text[sec6.byte_range.start..sec6.byte_range.end], "éíó");
+        assert_eq!(sec6.format.color, egui::Color32::RED);
     }
 }
