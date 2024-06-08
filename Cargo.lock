@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "egui_autocomplete"
-version = "6.0.0"
+version = "6.0.1"
 dependencies = [
  "eframe",
  "egui",
