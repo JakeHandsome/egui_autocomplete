@@ -2,3 +2,4 @@
 /dist
 cobertura.xml
 tarpaulin-*
+.direnv

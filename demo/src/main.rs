@@ -13,7 +13,7 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "auto complete demo",
         native_options,
-        Box::new(|_| Box::<TemplateApp>::default()),
+        Box::new(|_| Ok(Box::<TemplateApp>::default())),
     )
 }
 
@@ -30,7 +30,7 @@ fn main() {
             .start(
                 "the_canvas_id", // hardcode it
                 web_options,
-                Box::new(|_| Box::new(TemplateApp::default())),
+                Box::new(|_| Ok(Box::new(TemplateApp::default()))),
             )
             .await
             .expect("failed to start eframe");
