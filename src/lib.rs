@@ -20,7 +20,10 @@
 //!   }
 //! }
 //! ````
-use egui::{text::LayoutJob, Context, FontId, Id, Key, Modifiers, TextBuffer, TextEdit, Widget};
+use egui::{
+    text::LayoutJob, Context, FontId, Id, Key, Modifiers, PopupCloseBehavior, TextBuffer, TextEdit,
+    Widget,
+};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::cmp::{min, Reverse};
@@ -163,36 +166,46 @@ where
             || ui.input_mut(|input| input.key_pressed(Key::Tab));
         if let (Some(index), true) = (
             state.selected_index,
-            ui.memory(|mem| mem.is_popup_open(id)) && accepted_by_keyboard,
+            // If accepted by keyboard, close the popup. If the popup is closed with a selected index, take that text
+            accepted_by_keyboard || !ui.memory(|mem| mem.is_popup_open(id)),
         ) {
-            text_field.replace_with(match_results[index].0.as_ref())
+            text_field.replace_with(match_results[index].0.as_ref());
+            state.selected_index = None;
         }
-        egui::popup::popup_below_widget(ui, id, &text_response, |ui| {
-            for (i, (output, _, match_indices)) in
-                match_results.iter().take(max_suggestions).enumerate()
-            {
-                let mut selected = if let Some(x) = state.selected_index {
-                    x == i
-                } else {
-                    false
-                };
+        egui::popup::popup_below_widget(
+            ui,
+            id,
+            &text_response,
+            PopupCloseBehavior::IgnoreClicks,
+            |ui| {
+                for (i, (output, _, match_indices)) in
+                    match_results.iter().take(max_suggestions).enumerate()
+                {
+                    let mut selected = if let Some(x) = state.selected_index {
+                        x == i
+                    } else {
+                        false
+                    };
 
-                let text = if highlight {
-                    highlight_matches(
-                        output.as_ref(),
-                        match_indices,
-                        ui.style().visuals.widgets.active.text_color(),
-                    )
-                } else {
-                    let mut job = LayoutJob::default();
-                    job.append(output.as_ref(), 0.0, egui::TextFormat::default());
-                    job
-                };
-                if ui.toggle_value(&mut selected, text).clicked() {
-                    text_field.replace_with(output.as_ref());
+                    let text = if highlight {
+                        highlight_matches(
+                            output.as_ref(),
+                            match_indices,
+                            ui.style().visuals.widgets.active.text_color(),
+                        )
+                    } else {
+                        let mut job = LayoutJob::default();
+                        job.append(output.as_ref(), 0.0, egui::TextFormat::default());
+                        job
+                    };
+                    //  Update selected index based on hover
+                    if ui.toggle_value(&mut selected, text).hovered() {
+                        state.selected_index = Some(i);
+                    }
                 }
-            }
-        });
+            },
+        );
+
         if !text_field.as_str().is_empty() && text_response.has_focus() && !match_results.is_empty()
         {
             ui.memory_mut(|mem| mem.open_popup(id));
