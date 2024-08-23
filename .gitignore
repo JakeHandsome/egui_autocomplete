@@ -3,3 +3,5 @@
 cobertura.xml
 tarpaulin-*
 .direnv
+# nix build output
+result
