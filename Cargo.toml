@@ -14,7 +14,6 @@ rust-version = "1.76"
 fuzzy-matcher = "0.3.7"
 serde = { version = "1", features = ["derive"], optional = true }
 egui.workspace = true
-eframe.workspace = true
 
 [workspace]
 members = ["demo"]
