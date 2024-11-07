@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] - 2024-11-07
+
+### Added
+This sets the changed flag in the Response object if the text was changed by selection from list. This can be used like this: [#28](https://github.com/JakeHandsome/egui_autocomplete/pull/28)
+    ```rust
+        if ui
+            .add(AutoCompleteTextEdit::new(text, autocomplete_list))
+            .changed()
+        {
+            //do something
+        };
+    ```
+
+### Fixed
+- Removed `eframe` as dependency, it is not required for this library  [#27](https://github.com/JakeHandsome/egui_autocomplete/pull/27)
+
 ## [7.0.0] - 2024-07-21
 ### Breaking
 - Updating to egui 0.28
