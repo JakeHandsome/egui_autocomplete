@@ -67,8 +67,8 @@
             pname = "demo";
             cargoExtraArgs = "-p demo";
             postInstall = ''
-                wrapProgram $out/bin/demo \
-                    --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath buildInputs} 
+              wrapProgram $out/bin/demo \
+                  --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath buildInputs} 
             '';
           }
         );
@@ -82,7 +82,7 @@
         devShells.default = mkShell {
           # Get all the inputs to build our flake
           inputsFrom = [ bin ];
-          buildInputs = with pkgs; [ ];
+          buildInputs = with pkgs; [ trunk ];
           LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
         };
       }
