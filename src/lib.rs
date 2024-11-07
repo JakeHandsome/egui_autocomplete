@@ -134,7 +134,7 @@ where
             text_edit = set_properties(text_edit);
         }
 
-        let text_response = text_edit.ui(ui);
+        let mut text_response = text_edit.ui(ui);
         state.focused = text_response.has_focus();
 
         let matcher = SkimMatcherV2::default().ignore_case();
@@ -171,6 +171,7 @@ where
         ) {
             text_field.replace_with(match_results[index].0.as_ref());
             state.selected_index = None;
+            text_response.changed = true;
         }
         egui::popup::popup_below_widget(
             ui,
