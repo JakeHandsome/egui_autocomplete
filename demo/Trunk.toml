@@ -1,4 +1,2 @@
 [build]
-filehash = false
-dist = "../dist"
-public_url = "/egui_autocomplete/"
+dist = "../dist"         # The output dir for all final assets.
