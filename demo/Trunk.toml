@@ -1,4 +1,1 @@
 [build]
-filehash = false
-dist = "../dist"
-public_url = "/egui_autocomplete/"
