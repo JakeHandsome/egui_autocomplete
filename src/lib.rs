@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<'a, T, S> AutoCompleteTextEdit<'a, T>
+impl<T, S> AutoCompleteTextEdit<'_, T>
 where
     T: IntoIterator<Item = S>,
     S: AsRef<str>,
@@ -103,7 +103,7 @@ where
     }
 }
 
-impl<'a, T, S> Widget for AutoCompleteTextEdit<'a, T>
+impl<T, S> Widget for AutoCompleteTextEdit<'_, T>
 where
     T: IntoIterator<Item = S>,
     S: AsRef<str>,
