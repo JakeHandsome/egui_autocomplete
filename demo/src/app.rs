@@ -53,6 +53,7 @@ pub struct TemplateApp {
     auto_complete2: AutoCompleteExample,
     max_suggestions: usize,
     highlight: bool,
+    popup_on_focus: bool,
 }
 
 struct AutoCompleteExample {
@@ -67,12 +68,14 @@ impl AutoCompleteExample {
         ui: &mut Ui,
         max_suggestions: usize,
         highlight_matches: bool,
+        popup_on_focus: bool,
     ) {
         let inputs = self.multi_input.lines().collect::<BTreeSet<_>>();
         ui.add(
             AutoCompleteTextEdit::new(&mut self.search_field, inputs)
                 .max_suggestions(max_suggestions)
-                .highlight_matches(highlight_matches),
+                .highlight_matches(highlight_matches)
+                .popup_on_focus(popup_on_focus),
         );
         ui.add(TextEdit::multiline(&mut self.multi_input));
     }
@@ -91,6 +94,7 @@ impl Default for TemplateApp {
             },
             max_suggestions: 10,
             highlight: false,
+            popup_on_focus: false,
         }
     }
 }
@@ -114,6 +118,10 @@ Use enter, tab or mouseclick to apply completion."#,
                     .on_hover_text(
                     "If highlight is set, matching characters will be highlighted in the drop down",
                 );
+                ui.checkbox(&mut self.popup_on_focus, "Popup on focus")
+                    .on_hover_text(
+                    "If set, will show autocomplete popup on focus instead of requiring one character to be typed",
+                );
                 ui.add(egui::DragValue::new(&mut self.max_suggestions).prefix("Max suggestions: "))
                     .on_hover_text(
                         "This determines the maximum number options to show in the drop down",
@@ -129,7 +137,7 @@ Use enter, tab or mouseclick to apply completion."#,
                     egui::Layout::top_down(egui::Align::Max),
                     |ui| {
                         self.auto_complete1
-                            .update(ctx, ui, self.max_suggestions, self.highlight);
+                            .update(ctx, ui, self.max_suggestions, self.highlight,self.popup_on_focus);
                     },
                 );
                 ui.separator();
@@ -138,7 +146,7 @@ Use enter, tab or mouseclick to apply completion."#,
                     egui::Layout::top_down(egui::Align::Min),
                     |ui| {
                         self.auto_complete2
-                            .update(ctx, ui, self.max_suggestions, self.highlight);
+                            .update(ctx, ui, self.max_suggestions, self.highlight,self.popup_on_focus);
                     },
                 );
             });
