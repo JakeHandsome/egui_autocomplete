@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [9.0.0] - 2025-01-25
 ### Breaking
 - Updated to egui 0.30
+- MSRV bummped to 1.80 to match egui
 
 [9.0.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/8.0.0...9.0.0
 
