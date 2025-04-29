@@ -171,7 +171,7 @@ where
         ) {
             text_field.replace_with(match_results[index].0.as_ref());
             state.selected_index = None;
-            text_response.changed = true;
+            text_response.mark_changed();
         }
         egui::popup::popup_below_widget(
             ui,
