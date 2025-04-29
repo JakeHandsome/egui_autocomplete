@@ -1,6 +1,6 @@
 [package]
 name = "egui_autocomplete"
-version = "10.0.0"
+version = "10.1.0"
 edition = "2021"
 license = "MIT"
 description = "Auto complete text box for egui"
@@ -32,10 +32,6 @@ serde = ["dep:serde", "egui/persistence"]
 
 [profile.release]
 opt-level = 2 # fast and small wasm
-
-# Optimize all dependencies even in debug builds:
-[profile.dev.package."*"]
-opt-level = 2
 
 
 [patch.crates-io]

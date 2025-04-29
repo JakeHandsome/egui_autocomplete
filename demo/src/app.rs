@@ -4,6 +4,10 @@ use eframe::egui;
 use egui::{TextEdit, Ui, Vec2};
 use egui_autocomplete::AutoCompleteTextEdit;
 
+static_toml::static_toml!(
+    static PARENT_TOML = include_toml!("../Cargo.toml");
+);
+
 const STARTER_LIST: &str = r#"writer
 seat
 dog
@@ -103,7 +107,7 @@ impl eframe::App for TemplateApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered_justified(|ui| {
-                ui.heading("egui_autocomplete demo");
+                ui.heading(format!("egui_autocomplete v{} demo", PARENT_TOML.package.version));
                 ui.label(
                     r#"Enter text in the single line entry for auto_complete.
 Add new lines in the multiline textbox to add to the autocomplete menu.
