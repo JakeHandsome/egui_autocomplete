@@ -79,8 +79,8 @@ jobs:
     # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
     strategy:
       matrix:
-        msrv: ["1.80.0"] # egui requires 1.80.0
-    name: ubuntu / ${{ matrix.msrv }}
+        msrv: ["1.81.0"] # egui requires 1.81.0
+    name: ubuntu / msrv
     steps:
       - uses: actions/checkout@v4
         with:
