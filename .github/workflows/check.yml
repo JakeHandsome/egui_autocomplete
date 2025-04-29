@@ -80,7 +80,7 @@ jobs:
     strategy:
       matrix:
         msrv: ["1.81.0"] # egui requires 1.81.0
-    name: ubuntu / ${{ matrix.msrv }}
+    name: ubuntu / msrv
     steps:
       - uses: actions/checkout@v4
         with:
