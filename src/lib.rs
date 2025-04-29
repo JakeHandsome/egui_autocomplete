@@ -43,6 +43,9 @@ pub struct AutoCompleteTextEdit<'a, T> {
     highlight: bool,
     /// Used to set properties on the internal TextEdit
     set_properties: Option<Box<SetTextEditProperties>>,
+    /// If set to true, the popup will show up when focused instead of waiting for a character to
+    /// be typed
+    popup_on_focus: bool,
 }
 
 impl<'a, T, S> AutoCompleteTextEdit<'a, T>
@@ -61,6 +64,7 @@ where
             max_suggestions: 10,
             highlight: false,
             set_properties: None,
+            popup_on_focus: false,
         }
     }
 }
@@ -78,6 +82,13 @@ where
     /// If set to true, characters will be highlighted in the dropdown to show the match
     pub fn highlight_matches(mut self, highlight: bool) -> Self {
         self.highlight = highlight;
+        self
+    }
+
+    /// If set to true, the popup will show up when focused instead of waiting for a character to
+    /// be typed
+    pub fn popup_on_focus(mut self, popup_on_focus: bool) -> Self {
+        self.popup_on_focus = popup_on_focus;
         self
     }
 
@@ -116,6 +127,7 @@ where
             max_suggestions,
             highlight,
             set_properties,
+            popup_on_focus,
         } = self;
 
         let id = ui.next_auto_id();
@@ -139,14 +151,17 @@ where
 
         let matcher = SkimMatcherV2::default().ignore_case();
 
-        let mut match_results = search
-            .into_iter()
-            .filter_map(|s| {
-                let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
-                score.map(|(score, indices)| (s, score, indices))
-            })
-            .collect::<Vec<_>>();
-        match_results.sort_by_key(|k| Reverse(k.1));
+        let match_results = {
+            let mut match_results = search
+                .into_iter()
+                .filter_map(|s| {
+                    let score = matcher.fuzzy_indices(s.as_ref(), text_field.as_str());
+                    score.map(|(score, indices)| (s, score, indices))
+                })
+                .collect::<Vec<_>>();
+            match_results.sort_by_key(|k| Reverse(k.1));
+            match_results
+        };
 
         if text_response.changed()
             || (state.selected_index.is_some()
@@ -207,7 +222,9 @@ where
             },
         );
 
-        if !text_field.as_str().is_empty() && text_response.has_focus() && !match_results.is_empty()
+        if state.focused
+            && (!text_field.as_str().is_empty() || popup_on_focus)
+            && !match_results.is_empty()
         {
             ui.memory_mut(|mem| mem.open_popup(id));
         } else {

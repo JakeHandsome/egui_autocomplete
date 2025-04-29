@@ -4,6 +4,10 @@ use eframe::egui;
 use egui::{TextEdit, Ui, Vec2};
 use egui_autocomplete::AutoCompleteTextEdit;
 
+static_toml::static_toml!(
+    static PARENT_TOML = include_toml!("../Cargo.toml");
+);
+
 const STARTER_LIST: &str = r#"writer
 seat
 dog
@@ -53,6 +57,7 @@ pub struct TemplateApp {
     auto_complete2: AutoCompleteExample,
     max_suggestions: usize,
     highlight: bool,
+    popup_on_focus: bool,
 }
 
 struct AutoCompleteExample {
@@ -67,12 +72,14 @@ impl AutoCompleteExample {
         ui: &mut Ui,
         max_suggestions: usize,
         highlight_matches: bool,
+        popup_on_focus: bool,
     ) {
         let inputs = self.multi_input.lines().collect::<BTreeSet<_>>();
         ui.add(
             AutoCompleteTextEdit::new(&mut self.search_field, inputs)
                 .max_suggestions(max_suggestions)
-                .highlight_matches(highlight_matches),
+                .highlight_matches(highlight_matches)
+                .popup_on_focus(popup_on_focus),
         );
         ui.add(TextEdit::multiline(&mut self.multi_input));
     }
@@ -91,6 +98,7 @@ impl Default for TemplateApp {
             },
             max_suggestions: 10,
             highlight: false,
+            popup_on_focus: false,
         }
     }
 }
@@ -99,7 +107,7 @@ impl eframe::App for TemplateApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered_justified(|ui| {
-                ui.heading("egui_autocomplete demo");
+                ui.heading(format!("egui_autocomplete v{} demo", PARENT_TOML.package.version));
                 ui.label(
                     r#"Enter text in the single line entry for auto_complete.
 Add new lines in the multiline textbox to add to the autocomplete menu.
@@ -113,6 +121,10 @@ Use enter, tab or mouseclick to apply completion."#,
                 ui.checkbox(&mut self.highlight, "Highlight matches")
                     .on_hover_text(
                     "If highlight is set, matching characters will be highlighted in the drop down",
+                );
+                ui.checkbox(&mut self.popup_on_focus, "Popup on focus")
+                    .on_hover_text(
+                    "If set, will show autocomplete popup on focus instead of requiring one character to be typed",
                 );
                 ui.add(egui::DragValue::new(&mut self.max_suggestions).prefix("Max suggestions: "))
                     .on_hover_text(
@@ -129,7 +141,7 @@ Use enter, tab or mouseclick to apply completion."#,
                     egui::Layout::top_down(egui::Align::Max),
                     |ui| {
                         self.auto_complete1
-                            .update(ctx, ui, self.max_suggestions, self.highlight);
+                            .update(ctx, ui, self.max_suggestions, self.highlight,self.popup_on_focus);
                     },
                 );
                 ui.separator();
@@ -138,7 +150,7 @@ Use enter, tab or mouseclick to apply completion."#,
                     egui::Layout::top_down(egui::Align::Min),
                     |ui| {
                         self.auto_complete2
-                            .update(ctx, ui, self.max_suggestions, self.highlight);
+                            .update(ctx, ui, self.max_suggestions, self.highlight,self.popup_on_focus);
                     },
                 );
             });

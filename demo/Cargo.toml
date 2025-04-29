@@ -8,6 +8,8 @@ edition = "2021"
 egui.workspace = true
 eframe.workspace = true
 log = "0.4"
+static-toml = "1"
+
 
 egui_autocomplete = { path = "../" }
 
