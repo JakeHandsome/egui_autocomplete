@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2025-04-28
+### Added
+- New api `multiple_words(bool)` which when set will provide completions when entering multiple space-delimited words 
+    - Thanks to @davvid for the new feature
+
+[10.2.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/10.1.0...10.2.0
+
 ## [10.1.0] - 2025-04-28
 ### Added
 - New api `popup_on_focus(bool)` will open the text box as soon as focused without needing any test input.
@@ -30,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 - Updated to egui 0.29
 
-[8.0.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/7.1.0...8.0.0
+[8.0.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/7.1.0...8.0.0multiple_words
 
 ## [7.1.0] - 2024-11-07
 

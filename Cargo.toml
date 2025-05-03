@@ -1,6 +1,6 @@
 [package]
 name = "egui_autocomplete"
-version = "10.1.0"
+version = "10.2.0"
 edition = "2021"
 license = "MIT"
 description = "Auto complete text box for egui"
