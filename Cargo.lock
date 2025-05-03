@@ -585,7 +585,7 @@ dependencies = [
 
 [[package]]
 name = "egui_autocomplete"
-version = "10.1.0"
+version = "10.2.0"
 dependencies = [
  "egui",
  "fuzzy-matcher",
