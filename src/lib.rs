@@ -335,7 +335,7 @@ fn highlight_matches(text: &str, match_indices: &[usize], color: egui::Color32) 
 }
 
 /// Stores the currently selected index in egui state
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(default))]
 struct AutoCompleteTextEditState {
@@ -369,6 +369,7 @@ impl AutoCompleteTextEditState {
         max_suggestions: usize,
     ) {
         self.selected_index = match self.selected_index {
+            _ if match_results_count == 0 => None,
             // Increment selected index when down is pressed, limit it to the number of matches and max_suggestions
             Some(index) if down_pressed => {
                 if index + 1 < min(match_results_count, max_suggestions) {
