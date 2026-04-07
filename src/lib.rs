@@ -308,7 +308,7 @@ where
 
         state.store(ui.ctx(), id);
 
-        text_response
+        text_response.response
     }
 }
 

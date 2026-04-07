@@ -69,7 +69,6 @@ struct AutoCompleteExample {
 impl AutoCompleteExample {
     fn update(
         &mut self,
-        _ctx: &egui::Context,
         ui: &mut Ui,
         max_suggestions: usize,
         highlight_matches: bool,
@@ -108,8 +107,8 @@ impl Default for TemplateApp {
 }
 
 impl eframe::App for TemplateApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show_inside(ui, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading(format!("egui_autocomplete v{} demo", PARENT_TOML.package.version));
                 ui.label(
@@ -149,7 +148,6 @@ Use enter, tab or mouseclick to apply completion."#,
                     egui::Layout::top_down(egui::Align::Max),
                     |ui| {
                         self.auto_complete1.update(
-                            ctx,
                             ui,
                             self.max_suggestions,
                             self.highlight,
@@ -164,7 +162,6 @@ Use enter, tab or mouseclick to apply completion."#,
                     egui::Layout::top_down(egui::Align::Min),
                     |ui| {
                         self.auto_complete2.update(
-                            ctx,
                             ui,
                             self.max_suggestions,
                             self.highlight,
