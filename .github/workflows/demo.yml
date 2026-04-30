@@ -19,7 +19,7 @@ jobs:
   build-github-pages:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # repo checkout
+      - uses: actions/checkout@v6 # repo checkout
       - name: Setup toolchain for wasm
         run: |
           rustup update stable
