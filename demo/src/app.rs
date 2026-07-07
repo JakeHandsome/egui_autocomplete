@@ -108,7 +108,7 @@ impl Default for TemplateApp {
 
 impl eframe::App for TemplateApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading(format!("egui_autocomplete v{} demo", PARENT_TOML.package.version));
                 ui.label(
