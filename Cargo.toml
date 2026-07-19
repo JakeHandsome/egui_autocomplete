@@ -19,13 +19,8 @@ egui.workspace = true
 members = ["demo"]
 
 [workspace.dependencies]
-egui = { version = "0.33", default-features = false }
-eframe = { version = "0.33", default-features = false, features = [
-    "wayland",       # Linux support
-    "x11",
-    "default_fonts",
-    "glow",
-] }
+egui = { version = "0.35", default-features = false }
+eframe = { version = "0.35", default-features = false, features = ["wayland", "wgpu_no_default_features"] }
 
 [features]
 serde = ["dep:serde", "egui/persistence"]

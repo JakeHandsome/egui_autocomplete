@@ -37,7 +37,8 @@ pub struct AutoCompleteTextEdit<'a, T> {
     text_field: &'a mut String,
     /// Data to use as the search term
     search: T,
-    /// A limit that can be placed on the maximum number of autocomplete suggestions shown
+    /// A limit that can be placed on the maximum number of autocomplete suggestions shown (default `10`)
+    /// `usize::MAX` wraps suggestions in a ScrollArea::vertical() instead
     max_suggestions: usize,
     /// If true, highlights the matching indices in the dropdown
     highlight: bool,
@@ -82,6 +83,10 @@ where
     S: AsRef<str>,
 {
     /// This determines the number of options appear in the dropdown menu
+    ///
+    /// Set to `usize::MAX` to enable scrolling instead.
+    ///
+    /// Defaults to `10`
     pub fn max_suggestions(mut self, max_suggestions: usize) -> Self {
         self.max_suggestions = max_suggestions;
         self
@@ -172,7 +177,7 @@ where
 
         let completion_input = if multiple_words {
             if let Some(cursor_range) = text_edit_output.cursor_range {
-                let index = cursor_range.primary.index;
+                let index = cursor_range.primary.index.0;
                 // Get the word located at the current index
                 let mut start = index;
                 let mut end = index;
@@ -279,9 +284,7 @@ where
 
         // show the popup
         popup.show(|ui| {
-            for (i, (output, _, match_indices)) in
-                match_results.iter().take(max_suggestions).enumerate()
-            {
+            let mut show_popup_contents = |ui: &mut egui::Ui, i, output: &S, match_indices| {
                 let mut selected = if let Some(x) = state.selected_index {
                     x == i
                 } else {
@@ -302,13 +305,28 @@ where
                 //  Update selected index based on hover
                 if ui.toggle_value(&mut selected, text).hovered() {
                     state.selected_index = Some(i);
+                };
+            };
+
+            if max_suggestions == usize::MAX {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.set_min_height(100.);
+                    for (i, (output, _, match_indices)) in match_results.iter().enumerate() {
+                        show_popup_contents(ui, i, output, match_indices);
+                    }
+                });
+            } else {
+                for (i, (output, _, match_indices)) in
+                    match_results.iter().take(max_suggestions).enumerate()
+                {
+                    show_popup_contents(ui, i, output, match_indices);
                 }
             }
         });
 
         state.store(ui.ctx(), id);
 
-        text_response
+        text_response.response
     }
 }
 
@@ -454,27 +472,27 @@ mod test {
         let layout = highlight_matches(&text, &match_indices, egui::Color32::RED);
         assert_eq!(6, layout.sections.len());
         let sec1 = layout.sections.first().unwrap();
-        assert_eq!(&text[sec1.byte_range.start..sec1.byte_range.end], "T");
+        assert_eq!(&text[sec1.byte_range.start.0..sec1.byte_range.end.0], "T");
         assert_ne!(sec1.format.color, egui::Color32::RED);
 
         let sec2 = layout.sections.get(1).unwrap();
-        assert_eq!(&text[sec2.byte_range.start..sec2.byte_range.end], "e");
+        assert_eq!(&text[sec2.byte_range.start.0..sec2.byte_range.end.0], "e");
         assert_eq!(sec2.format.color, egui::Color32::RED);
 
         let sec3 = layout.sections.get(2).unwrap();
-        assert_eq!(&text[sec3.byte_range.start..sec3.byte_range.end], "st1");
+        assert_eq!(&text[sec3.byte_range.start.0..sec3.byte_range.end.0], "st1");
         assert_ne!(sec3.format.color, egui::Color32::RED);
 
         let sec4 = layout.sections.get(3).unwrap();
-        assert_eq!(&text[sec4.byte_range.start..sec4.byte_range.end], "23");
+        assert_eq!(&text[sec4.byte_range.start.0..sec4.byte_range.end.0], "23");
         assert_eq!(sec4.format.color, egui::Color32::RED);
 
         let sec5 = layout.sections.get(4).unwrap();
-        assert_eq!(&text[sec5.byte_range.start..sec5.byte_range.end], "á");
+        assert_eq!(&text[sec5.byte_range.start.0..sec5.byte_range.end.0], "á");
         assert_ne!(sec5.format.color, egui::Color32::RED);
 
         let sec6 = layout.sections.get(5).unwrap();
-        assert_eq!(&text[sec6.byte_range.start..sec6.byte_range.end], "éíó");
+        assert_eq!(&text[sec6.byte_range.start.0..sec6.byte_range.end.0], "éíó");
         assert_eq!(sec6.format.color, egui::Color32::RED);
     }
 }
