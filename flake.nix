@@ -50,10 +50,10 @@
           wayland
 
           # x11 libraries
-          xorg.libXcursor
-          xorg.libXrandr
-          xorg.libXi
-          xorg.libX11
+          libxcursor
+          libxrandr
+          libxi
+          libx11
         ];
         commonArgs = {
           inherit src buildInputs nativeBuildInputs;
