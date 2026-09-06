@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking
 - Requires egui 0.34
+- Rust MSRV is 1.92
 
 [13.0.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/12.0.0...13.0.0
 
