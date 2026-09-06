@@ -20,6 +20,7 @@
 //!   }
 //! }
 //! ````
+use egui::text::CharIndex;
 use egui::{
     text::LayoutJob, Context, FontId, Id, Key, Modifiers, Popup, PopupCloseBehavior, TextBuffer,
     TextEdit, Widget,
@@ -176,8 +177,8 @@ where
                 // Get the word located at the current index
                 let mut start = index;
                 let mut end = index;
-                while start > 0
-                    && !text_field[start - 1..start]
+                while start > CharIndex::ZERO
+                    && !text_field[(start - 1).0..(start).0]
                         .chars()
                         .next()
                         .map(|c| c.is_whitespace())
@@ -185,8 +186,8 @@ where
                 {
                     start -= 1;
                 }
-                while end < text_field.len()
-                    && !text_field[end..end + 1]
+                while end.0 < text_field.len()
+                    && !text_field[end.0..(end + 1).0]
                         .chars()
                         .next()
                         .map(|c| c.is_whitespace())
@@ -196,7 +197,7 @@ where
                 }
                 state.start = start;
                 state.end = end;
-                text_field[start..end].trim()
+                text_field[start.0..end.0].trim()
             } else {
                 text_field.as_str()
             }
@@ -223,7 +224,7 @@ where
 
         if text_response.changed()
             || (state.selected_index.is_some()
-                && state.selected_index.unwrap() >= match_results.len())
+                && state.selected_index.unwrap().0 >= match_results.len())
         {
             state.selected_index = None;
         }
@@ -256,9 +257,9 @@ where
             // If accepted by keyboard, close the popup. If the popup is closed with a selected index, take that text
             accepted_by_keyboard || !popup.is_open(),
         ) {
-            let match_result = match_results[index].0.as_ref();
+            let match_result = match_results[index.0].0.as_ref();
             if multiple_words {
-                text_field.replace_range(state.start..state.end, match_result);
+                text_field.replace_range(state.start.0..state.end.0, match_result);
                 // Move the cursor to the end of the line.
                 let text_edit_id = text_response.id;
                 if let Some(mut state) = TextEdit::load_state(ui.ctx(), text_edit_id) {
@@ -283,7 +284,7 @@ where
                 match_results.iter().take(max_suggestions).enumerate()
             {
                 let mut selected = if let Some(x) = state.selected_index {
-                    x == i
+                    x == CharIndex(i)
                 } else {
                     false
                 };
@@ -301,7 +302,7 @@ where
                 };
                 //  Update selected index based on hover
                 if ui.toggle_value(&mut selected, text).hovered() {
-                    state.selected_index = Some(i);
+                    state.selected_index = Some(CharIndex(i));
                 }
             }
         });
@@ -349,13 +350,13 @@ fn highlight_matches(text: &str, match_indices: &[usize], color: egui::Color32) 
 #[cfg_attr(feature = "serde", serde(default))]
 struct AutoCompleteTextEditState {
     /// Currently selected index, is `None` if nothing is selected
-    selected_index: Option<usize>,
+    selected_index: Option<CharIndex>,
     /// Whether or not the text edit was focused last frame
     focused: bool,
     /// The start of the current word being replaced
-    start: usize,
+    start: CharIndex,
     /// The end of the current word being replaced
-    end: usize,
+    end: CharIndex,
 }
 
 impl AutoCompleteTextEditState {
@@ -382,7 +383,7 @@ impl AutoCompleteTextEditState {
             // Increment selected index when down is pressed, limit it to the number of matches and max_suggestions
             // Deselect if at last index
             Some(index) if down_pressed => {
-                if index + 1 < match_results_count.min(max_suggestions) {
+                if index.0 + 1 < match_results_count.min(max_suggestions) {
                     Some(index + 1)
                 } else {
                     None
@@ -390,16 +391,16 @@ impl AutoCompleteTextEditState {
             }
             // Decrement selected index if up is pressed. Deselect if at first index
             Some(index) if up_pressed => {
-                if index == 0 {
+                if index == CharIndex(0) {
                     None
                 } else {
                     Some(index - 1)
                 }
             }
             // If nothing is selected and down is pressed, select first item
-            None if down_pressed => Some(0),
+            None if down_pressed => Some(CharIndex(0)),
             // If nothing is selected and up is pressed, select last item
-            None if up_pressed => Some(match_results_count.min(max_suggestions) - 1),
+            None if up_pressed => Some(CharIndex(match_results_count.min(max_suggestions) - 1)),
             // Do nothing if no keys are pressed
             Some(index) => Some(index),
             None => None,
@@ -418,32 +419,32 @@ mod test {
         state.update_index(false, false, 10, 10);
         assert_eq!(None, state.selected_index);
         state.update_index(true, false, 10, 10);
-        assert_eq!(Some(0), state.selected_index);
+        assert_eq!(Some(CharIndex(0)), state.selected_index);
         state.update_index(true, false, 2, 3);
-        assert_eq!(Some(1), state.selected_index);
+        assert_eq!(Some(CharIndex(1)), state.selected_index);
         state.update_index(true, false, 2, 3);
         assert_eq!(None, state.selected_index);
         state.update_index(true, false, 10, 3);
-        assert_eq!(Some(0), state.selected_index);
+        assert_eq!(Some(CharIndex(0)), state.selected_index);
         state.update_index(true, false, 10, 3);
         state.update_index(true, false, 10, 3);
-        assert_eq!(Some(2), state.selected_index);
+        assert_eq!(Some(CharIndex(2)), state.selected_index);
         state.update_index(true, false, 10, 3);
         assert_eq!(None, state.selected_index);
         state.update_index(false, true, 10, 3);
-        assert_eq!(Some(2), state.selected_index);
+        assert_eq!(Some(CharIndex(2)), state.selected_index);
     }
     #[test]
     fn decrement_index() {
         let mut state = AutoCompleteTextEditState {
-            selected_index: Some(1),
+            selected_index: Some(CharIndex(1)),
             ..Default::default()
         };
-        state.selected_index = Some(1);
+        state.selected_index = Some(CharIndex(1));
         state.update_index(false, false, 10, 10);
-        assert_eq!(Some(1), state.selected_index);
+        assert_eq!(Some(CharIndex(1)), state.selected_index);
         state.update_index(false, true, 10, 10);
-        assert_eq!(Some(0), state.selected_index);
+        assert_eq!(Some(CharIndex(0)), state.selected_index);
         state.update_index(false, true, 10, 10);
         assert_eq!(None, state.selected_index);
     }
@@ -454,27 +455,27 @@ mod test {
         let layout = highlight_matches(&text, &match_indices, egui::Color32::RED);
         assert_eq!(6, layout.sections.len());
         let sec1 = layout.sections.first().unwrap();
-        assert_eq!(&text[sec1.byte_range.start..sec1.byte_range.end], "T");
+        assert_eq!(&text[sec1.byte_range.start.0..sec1.byte_range.end.0], "T");
         assert_ne!(sec1.format.color, egui::Color32::RED);
 
         let sec2 = layout.sections.get(1).unwrap();
-        assert_eq!(&text[sec2.byte_range.start..sec2.byte_range.end], "e");
+        assert_eq!(&text[sec2.byte_range.start.0..sec2.byte_range.end.0], "e");
         assert_eq!(sec2.format.color, egui::Color32::RED);
 
         let sec3 = layout.sections.get(2).unwrap();
-        assert_eq!(&text[sec3.byte_range.start..sec3.byte_range.end], "st1");
+        assert_eq!(&text[sec3.byte_range.start.0..sec3.byte_range.end.0], "st1");
         assert_ne!(sec3.format.color, egui::Color32::RED);
 
         let sec4 = layout.sections.get(3).unwrap();
-        assert_eq!(&text[sec4.byte_range.start..sec4.byte_range.end], "23");
+        assert_eq!(&text[sec4.byte_range.start.0..sec4.byte_range.end.0], "23");
         assert_eq!(sec4.format.color, egui::Color32::RED);
 
         let sec5 = layout.sections.get(4).unwrap();
-        assert_eq!(&text[sec5.byte_range.start..sec5.byte_range.end], "á");
+        assert_eq!(&text[sec5.byte_range.start.0..sec5.byte_range.end.0], "á");
         assert_ne!(sec5.format.color, egui::Color32::RED);
 
         let sec6 = layout.sections.get(5).unwrap();
-        assert_eq!(&text[sec6.byte_range.start..sec6.byte_range.end], "éíó");
+        assert_eq!(&text[sec6.byte_range.start.0..sec6.byte_range.end.0], "éíó");
         assert_eq!(sec6.format.color, egui::Color32::RED);
     }
 }
