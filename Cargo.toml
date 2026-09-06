@@ -17,7 +17,6 @@ egui.workspace = true
 
 [workspace]
 members = ["demo"]
-default-members = ["demo"]
 
 [workspace.dependencies]
 egui = { version = "0.34", default-features = false }
