@@ -11,3 +11,9 @@ You can select the suggestions with arrows keys + enter/tab or mouse clicks.
 View web example [here](https://jakehandsome.github.io/egui_autocomplete/)
 
 To enable egui persistence, enable the `serde` feature
+
+## Demo
+
+Run the native demo from the workspace root with:
+
+`cargo run`

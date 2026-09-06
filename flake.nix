@@ -50,10 +50,10 @@
           wayland
 
           # x11 libraries
-          xorg.libXcursor
-          xorg.libXrandr
-          xorg.libXi
-          xorg.libX11
+          libxcursor
+          libxrandr
+          libxi
+          libx11
         ];
         commonArgs = {
           inherit src buildInputs nativeBuildInputs;
@@ -81,7 +81,10 @@
         devShells.default = mkShell {
           # Get all the inputs to build our flake
           inputsFrom = [ bin ];
-          buildInputs = with pkgs; [ trunk ];
+          buildInputs = with pkgs; [
+            trunk
+            cargo-hack
+          ];
           LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
         };
       }
