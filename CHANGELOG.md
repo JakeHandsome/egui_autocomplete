@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [13.0.0] - 2026-09-06
+
+### Breaking
+- Requires egui 0.34
+
+[13.0.0]: https://github.com/JakeHandsome/egui_autocomplete/compare/12.0.0...13.0.0
+
 ## [12.0.0] - 2025-11-02
 
 ### Breaking
